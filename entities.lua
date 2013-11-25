@@ -1,4 +1,6 @@
-entities = {}
+--	Entities.lua
+--=============================================--
+local entities = {}
 entities.objects = {}
 entities.path = "entities/"
 
@@ -7,21 +9,46 @@ local id = 0
 
 
 function entities:loadAll()
-	register["box"] = love.filesystem.load( entities.path .. "box.lua" )
 	register["player"] = love.filesystem.load( entities.path .. "player.lua" )
+	register["amy"] = love.filesystem.load( entities.path .. "amy.lua" )
 	register["mine"] = love.filesystem.load( entities.path .. "mine.lua" )
+	register["FlashEffect"] = love.filesystem.load( entities.path .. "effects/flash.lua" )
 
-	do	-- SPAWN MAP OBJECTS
-		local layer = map("Objects")
-		for i  = 1, #layer.objects do
-			local obj = layer.objects[i]
-			if obj.name == "player" then
-				player = self.Spawn(obj.name, obj.x, obj.y)
-			else
-				self.Spawn(obj.name, obj.x, obj.y)
-			end
+	self:LoadObjects()
+	self:LoadLevel()
+end
+
+function entities:LoadObjects()
+	local layer = map("Objects")
+	for i = 1, #layer.objects do
+	local obj = layer.objects[i]
+		if obj.name == "player" then
+			player = self.Spawn(obj.name, obj.x, obj.y) --TODO: Better way to make the player global?
+		else
+			self.Spawn(obj.name, obj.x, obj.y)
 		end
-		layer:toCustomLayer()
+	end
+	layer:toCustomLayer() --TODO: Not break when love.load is called twice
+end
+
+function entities:LoadLevel() --TODO: Optimize using: http://love2d.org/forums/viewtopic.php?f=4&t=54654&p=131862#p132045
+	local layer = map("Ground")
+	entities.objects.walls = {}
+	for x, y, tile in layer:iterate() do
+		if tile.properties.obstacle then
+			local w, h, xOffset, yOffset
+			
+			w = tile.properties.width or map.tileWidth
+			h = tile.properties.height or map.tileHeight
+			xOffset = tile.properties.xOffset or 0
+			yOffset = tile.properties.yOffset or 0
+			
+			local body = love.physics.newBody(world, x*map.tileWidth+xOffset+w/2, y*map.tileHeight+yOffset+h/2)
+			local shape = love.physics.newRectangleShape(w, h)
+			
+			entities.objects.walls.fixture = love.physics.newFixture(body, shape)
+			entities.objects.walls.fixture:setMask(16)
+		end
 	end
 end
 
@@ -30,18 +57,19 @@ function entities.Derive(name)
 end
 
 function entities.Spawn(name, x, y)
-
 	if register[name] then
 		id = id + 1
+		
 		local entity = register[name]()
 		entity.id = id
 		entity.type = name
-		entity:setPos(x, y)
+		entity:setPos(x, y) --TODO: Validate if it exists, or move into :load()
 		entity:load()
 		entities.objects[id] = entity
+		
 		return entities.objects[id]
 	else
-		print("Error: Entity " .. name .. " does not exist!")
+		love.errhand("Entity " .. name .. " does not exist!")
 		return false;
 	end
 end
@@ -56,7 +84,7 @@ function entities.Destroy(id)
 end
 
 function entities:update(dt)
-	for i, entity in pairs(entities.objects) do
+	for _, entity in pairs(entities.objects) do
 		if entity.update then
 			entity:update(dt)
 		end
@@ -64,10 +92,27 @@ function entities:update(dt)
 end
 
 function entities:draw()
-	for i, entity in pairs(entities.objects) do
+	for _, entity in pairs(entities.objects) do
 		if entity.draw then
 			entity:draw()
 		end
 	end
 end
 
+function entities:mousepressed(x,y,button)
+	for _, entity in pairs(entities.objects) do
+		if entity.mousepressed then
+			entity:mousepressed(x, y, button)
+		end
+	end
+end
+
+function entities:mousereleased(x,y,button)
+	for _, entity in pairs(entities.objects) do
+		if entity.mousereleased then
+			entity:mousereleased(x, y, button)
+		end
+	end
+end
+
+return entities

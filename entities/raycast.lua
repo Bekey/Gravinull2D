@@ -17,7 +17,8 @@ function raycast:ShootRaycast(px, py, distance)
 
 
 	for i = 1, 7 do
-		local angle = math.atan2(camera:mouseGetY()-self.py, camera:mouseGetX()-self.px)+math.rad(-4+i*1) -- -2 -1 0 +1 +2
+		local mx, my = cam:mousepos()
+		local angle = math.atan2(my-self.py, mx-self.px)+math.rad(-4+i*1) -- -2 -1 0 +1 +2
 
 		GrappleRay.x1, GrappleRay.y1 = self.px, self.py
 		GrappleRay.x2, GrappleRay.y2 = self.distance*math.cos(angle)+self.px, self.distance*math.sin(angle)+self.py
@@ -33,14 +34,9 @@ function raycast:ShootRaycast(px, py, distance)
 			if body:getType() == "static" then
 				GrappleRay.inSight = {}
 			else
-				local x, y = body:getPosition()
-				for i, entity in pairs(entities.objects) do
-					if entity.type == "mine" then
-						local x1,y1	= entity:getPosition()
-						if x == x1 and y == y1 then
-							table.insert(GrappleRay.inSight, hit)
-						end
-					end
+				local entity = hit.fixture:getUserData()
+				if entity and entity.type == "mine" then
+					table.insert(GrappleRay.inSight, hit)
 				end
 			end
 		end

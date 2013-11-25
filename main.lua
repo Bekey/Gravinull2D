@@ -1,153 +1,84 @@
---require("libs.lovedebug")
-require("libs.loveframes")
-local ATL = require("libs.AdvTiledLoader")
-vector = require "libs.hump.vector"
-Timer = require "libs.hump.timer"
-require("_math")
-require("camera")
-require("console")
-require("entities")
+--	Libraries - libraries.txt for more info
+--=============================================--
+ATL = require("libs.AdvTiledLoader")
+Camera = require("libs.hump.camera")
+Vector = require("libs.hump.vector")
+Timer = require("libs.hump.timer")
+require("libs.AnAL")
 
-----------------------------------------------------------------------------------------------------
--- GLOBALS?
+--	App files
+--=============================================--
+Entities = require("entities")
+Collision = require("collision")
+
+--	Temporary globals
+--=============================================--
 ATL.Loader.path = 'maps/'
 map = ATL.Loader.load("desert.tmx")
+love.graphics.setDefaultImageFilter( "nearest", "nearest" )
 love.physics.setMeter(map.tileWidth)
 world = love.physics.newWorld(0, 0, true)
-objects = {}
+world:setCallbacks(Collision.beginContact, Collision.endContact, Collision.preSolve, Collision.postSolve)
+DEBUG = false
 images = {}
-love.graphics.setDefaultImageFilter( "nearest", "nearest" )
 
-----------------------------------------------------------------------------------------------------
--- LOAD THIS SHIT
+
 function love.load()
-	--[[ LOAD IMAGES
-	]]	img_fn = {"amy_body", "amy_arm", "amy_joint", "mines"}
-	for _, v in ipairs(img_fn) do
-		images[v] = love.graphics.newImage("assets/".. v .. ".png")
+	local img_filenames = {"amy/amy_arm", "amy/amy_joint", "amy/amy_plating", "amy/amy_gears", "mines", "effects/flash"}
+	images["amy_plate"] = love.image.newImageData("assets/amy/amy_plating.png")
+	for _, v in ipairs(img_filenames) do
+		images[v] = love.graphics.newImage("assets/" .. v .. ".png")
 	end
 
+	local width, height, mapwidth, mapheight
 	width = love.graphics.getWidth()
 	height = love.graphics.getHeight()
 	mapwidth = map.width * map.tileWidth
 	mapheight = map.height * map.tileHeight
 	
+	cam = Camera(0, 0)
+	cam:zoom(1)
+	cam:setBounds(width/2, height/2, mapwidth - width/2, mapheight - height/2)
 	
-	camera:setBounds(0, 0, mapwidth - width, mapheight - height)
-
-	entities:loadAll()
-	
-	--------------------------------------------------------
-	-- TODO: Bring this in a separate class/file/function
-	for x, y, tile in map("Ground"):iterate() do
-		if tile.properties.obstacle then
-			local w, h, xOffset, yOffset
-			if tile.properties.width then w = tile.properties.width else w = map.tileWidth end
-			if tile.properties.height then h = tile.properties.height else h = map.tileHeight end
-			if tile.properties.xOffset then xOffset = tile.properties.xOffset else xOffset = 0 end
-			if tile.properties.yOffset then yOffset = tile.properties.yOffset else yOffset = 0 end
-			objects.walls = {}
-			objects.walls.body = love.physics.newBody(world, x*map.tileWidth+xOffset+w/2, y*map.tileHeight+yOffset+h/2)
-			objects.walls.shape = love.physics.newRectangleShape(w, h)
-			objects.walls.fixture = love.physics.newFixture(objects.walls.body, objects.walls.shape)
-			objects.walls.fixture:setMask(16) 
-		end
-	end
-
+	Entities:loadAll()
 end
 
-----------------------------------------------------------------------------------------------------
--- UPDATE FUNCTION
 function love.update(dt)
-	--[[ LOVE FRAMES
-	]]	loveframes.update(dt)
-
-	--[[ THIS PUTS THE WORLD INTO MOTION
-	]]	world:update(dt)
-	
-	--[[ ENTITIES
-	]]	entities:update(dt)
-
-	--[[ TIMER
-	]]	Timer.update(dt)
-    
-	tx = math.floor(player:getX() - width / 2)
-	ty = math.floor(player:getY() - height / 2)
-
-	camera:setPosition(tx, ty)
-
-	tx = camera:getX()
-	ty = camera:getY()
-
+	world:update(dt)
+	Entities:update(dt)
+	Timer.update(dt)
+	cam:lookAt(math.floor(player:getX()),math.floor(player:getY()))
 end
 
-----------------------------------------------------------------------------------------------------
--- DRAW FUNCTION
 function love.draw()
 	love.graphics.setColor(255, 255, 255)
-	--[[ STUFF
-	]]	camera:set()
-		camera:draw()
-
-	--[[ ATL MAP
-	]]	map:setDrawRange(math.floor(tx), math.floor(ty), math.floor(width), math.floor(height))
-		map:draw()
-		
-	--[[ ENTITIES
-	]]	entities:draw()
+	cam:attach()
 	
-		camera:unset()
+	local dx, dy = cam.x - 400, cam.y - 300
+	map:setDrawRange(dx, dy,800,600)
+	map:draw()
 
-	--[[ CONSOLE
-	]]	console:draw()
+	Entities:draw()
 
-	--[[ LOVE FRAMES
-	]]	loveframes.draw()
+	cam:detach()
 end
 
-----------------------------------------------------------------------------------------------------
--- KEYBOARD PRESSED
 function love.keypressed(key, unicode)
-	--[[ LOVE FRAMES
-	]]	loveframes.keypressed(key, unicode)
-
-	--[[ ATL MAP
-	]]	map:callback("keypressed", key, unicode)
+	map:callback("keypressed", key, unicode)
 	if key == 'f4' then
-		entities.Spawn("mine", camera:mouseGetX(), camera:mouseGetY())
-	elseif key == 'f3' then
-		love.load()
-	elseif key == 'f2' then
-		console:switch()
-	elseif key == "f1" then
-		local debug = loveframes.config["DEBUG"]
-		loveframes.config["DEBUG"] = not debug
+		local x,y = cam:worldCoords(love.mouse.getPosition())
+		Entities.Spawn("amy", x, y)
+	elseif key == 'f1' then
+		DEBUG = not DEBUG
 	end
-
 end
 
-----------------------------------------------------------------------------------------------------
--- KEYBOARD RELEASED
-function love.keyreleased(key)
-	--[[ LOVE FRAMES
-	]]	loveframes.keyreleased(key)
-end
-
-
-----------------------------------------------------------------------------------------------------
--- MOUSE PRESSED
 function love.mousepressed(x, y, button)
-	--[[ LOVE FRAMES
-	]]	loveframes.mousepressed(x, y, button)
-	
-	player:mousepressed(x,y,button)
-	
+	local x, y = cam:mousepos()
+	Entities:mousepressed(x,y,button)
 end
 
-----------------------------------------------------------------------------------------------------
--- MOUSE RELEASED
 function love.mousereleased(x, y, button)
-	--[[ LOVE FRAMES
-	]]	loveframes.mousereleased(x, y, button)
-	
+	local x, y = cam:mousepos()
+	Entities:mousereleased(x,y,button)
 end

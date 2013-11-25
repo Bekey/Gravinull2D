@@ -29,6 +29,7 @@ local cos, sin = math.cos, math.sin
 
 local camera = {}
 camera.__index = camera
+camera._bounds = nil
 
 local function new(x,y, zoom, rot)
 	x,y  = x or love.graphics.getWidth()/2, y or love.graphics.getHeight()/2
@@ -38,12 +39,22 @@ local function new(x,y, zoom, rot)
 end
 
 function camera:lookAt(x,y)
-	self.x, self.y = x,y
+	if self._bounds then
+		self.x = self.clamp(x, self._bounds.x1, self._bounds.x2)
+		self.y = self.clamp(y, self._bounds.y1, self._bounds.y2)
+	else
+		self.x, self.y = x,y
+	end
 	return self
 end
 
 function camera:move(x,y)
-	self.x, self.y = self.x + x, self.y + y
+	if self._bounds then
+		self.x = self.clamp(self.x + x, self._bounds.x1, self._bounds.x2)
+		self.y = self.clamp(self.y + y, self._bounds.y1, self._bounds.y2)
+	else
+		self.x, self.y = self.x + x, self.y + y
+	end
 	return self
 end
 
@@ -110,6 +121,24 @@ end
 
 function camera:mousepos()
 	return self:worldCoords(love.mouse.getPosition())
+end
+
+function camera:getBounds()
+	return unpack(self._bounds)
+end
+
+function camera:setBounds(x1, y1, x2, y2)
+	self._bounds = { x1 = x1, y1 = y1, x2 = x2, y2 = y2 }
+end
+
+function camera.clamp(x, min, max)
+	if x < min then
+		return min
+	elseif x > max then
+		return max
+	else
+		return x
+	end
 end
 
 -- the module
