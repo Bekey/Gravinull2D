@@ -4,6 +4,7 @@ ATL = require("libs.AdvTiledLoader")
 Camera = require("libs.hump.camera")
 Vector = require("libs.hump.vector")
 Timer = require("libs.hump.timer")
+Gamestate = require("libs.hump.gamestate")
 require("libs.AnAL")
 
 --	App files
@@ -21,15 +22,40 @@ world = love.physics.newWorld(0, 0, true)
 world:setCallbacks(Collision.beginContact, Collision.endContact, Collision.preSolve, Collision.postSolve)
 DEBUG = false
 images = {}
+fonts = {}
 
+-- Gamestates
+--=============================================--
+local menu = require("mainmenu")
+local game = {}
+
+
+function menu:mousepressed(x, y, button)
+    if y >= 360 and y<= 360+30 then
+        Gamestate.switch(game)
+    end
+end
 
 function love.load()
-	local img_filenames = {"amy/amy_arm", "amy/amy_joint", "amy/amy_plating", "amy/amy_gears", "mines", "effects/flash"}
+	local img_filenames = {
+	"mines",
+	"amy/amy_arm", "amy/amy_joint", "amy/amy_gears",
+	"effects/flash",
+	"mainmenu/background", "mainmenu/eye_big", "mainmenu/eye_small", "mainmenu/item_all", "mainmenu/item_decal", "mainmenu/logo", "mainmenu/wall_left", "mainmenu/wall_right",
+	}
 	images["amy_plate"] = love.image.newImageData("assets/amy/amy_plating.png")
 	for _, v in ipairs(img_filenames) do
 		images[v] = love.graphics.newImage("assets/" .. v .. ".png")
 	end
+	
+	fonts["silkscreen8"] = love.graphics.newFont("assets/slkscr.ttf", 8)
+	fonts["silkscreen16"] = love.graphics.newFont("assets/slkscr.ttf", 16) 
+	
+    Gamestate.registerEvents()
+    Gamestate.switch(menu)
+end
 
+function game:init()
 	local width, height, mapwidth, mapheight
 	width = love.graphics.getWidth()
 	height = love.graphics.getHeight()
@@ -43,14 +69,14 @@ function love.load()
 	Entities:loadAll()
 end
 
-function love.update(dt)
+function game:update(dt)
 	world:update(dt)
 	Entities:update(dt)
 	Timer.update(dt)
 	cam:lookAt(math.floor(player:getX()),math.floor(player:getY()))
 end
 
-function love.draw()
+function game:draw()
 	love.graphics.setColor(255, 255, 255)
 	cam:attach()
 	
@@ -63,7 +89,7 @@ function love.draw()
 	cam:detach()
 end
 
-function love.keypressed(key, unicode)
+function game:keypressed(key, unicode)
 	map:callback("keypressed", key, unicode)
 	if key == 'f4' then
 		local x,y = cam:worldCoords(love.mouse.getPosition())
@@ -73,12 +99,12 @@ function love.keypressed(key, unicode)
 	end
 end
 
-function love.mousepressed(x, y, button)
+function game:mousepressed(x, y, button)
 	local x, y = cam:mousepos()
 	Entities:mousepressed(x,y,button)
 end
 
-function love.mousereleased(x, y, button)
+function game:mousereleased(x, y, button)
 	local x, y = cam:mousepos()
 	Entities:mousereleased(x,y,button)
 end

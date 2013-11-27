@@ -100,8 +100,7 @@ function Amy:draw()
 		love.graphics.drawq(images["amy/amy_arm"], quad, math.floor(x1), math.floor(y1), self.r_arm,1,1,0,0,0,0)
 	end
 	do
-		local quad = self:getBodyPart("amy/amy_plating")
-		love.graphics.drawq(self.armourPlating, quad, math.floor(x1), math.floor(y1), self.r_body,1,1,0,0,0,0)
+		love.graphics.draw(self.armourPlating, math.floor(x1), math.floor(y1), self.r_body,1,1,0,0,0,0)
 	end
 	do
 		local quad = self:getBodyPart("amy/amy_gears")
