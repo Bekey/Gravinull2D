@@ -12,6 +12,7 @@ Following Ducksauce's decision to keep a coder's journal during the 5 week devel
 - Fiddled around with ATL, set the correct drawRange, constricted the camera to not go beyond the map dimensions and ultimately failed at making ATL render void-tiles whenever there's no tile information. Oh well, it's a fancy feature noone will miss (hopefully).
 - Used map("layer"):iterate() to cycle through all tiles and find the ones with the property "obstacle", if they had that property, I assigned physics to them. Very inefficient and bare bones, but regardless it's something I came up myself: http://i.imgur.com/S88eU9U.png
 - Created my first spritesheet, didn't feel very creative so I decided to invoke some nostalgia and recreate Source Engine dev textures in a 32x32 fashion: http://i.imgur.com/Gtleg9L.png
+
 ###### 01/09/2013 - Day 3
 - Added extra properties to the tilesheet to create corners and half-blocks. The stair-type of blocks still need a whole seperate algorithm tho, that's for another day: http://i.imgur.com/5UKGrw9.png
 - Followed ATL's tutorial to get objects from the map file to the game. It worked until I added physics to the object. I'll need to change my entire method and implement an entity system. Learning mode activated.
@@ -22,7 +23,7 @@ Following Ducksauce's decision to keep a coder's journal during the 5 week devel
 ###### 03/09/2013 - Day 5
 - Some more minor corrections via Razzeeyy's help. Entity system fully working, even used the system from Day 3 to implement spawning game object via the level editor: http://i.imgur.com/8Bv78hl.png
 - HOLY SHIT LOOK AT THESE PHYSICS http://i.imgur.com/ijQprvt.gif
-- *"<Kawata> why am i reminded of meatspin when i see that"*
+- *"Kawata said: why am i reminded of meatspin when i see that"*
 - Created some early mine objects.
 - Used world:RayCast to try and find grappleable mines in the aiming direction.
 
