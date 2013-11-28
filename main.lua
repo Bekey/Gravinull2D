@@ -26,7 +26,7 @@ fonts = {}
 
 -- Gamestates
 --=============================================--
-local menu = require("mainmenu")
+local menu = require("states.mainmenu")
 local game = {}
 
 

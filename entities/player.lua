@@ -98,6 +98,7 @@ function player:Shoot(angle)
 	delta.y = oy - self.y
 	delta:normalized()
 	projectile.body:applyLinearImpulse(delta.x*2, delta.y*2)
+	self.body:applyLinearImpulse(-delta.x, -delta.y)
 	
 	self.isHolding = false
 	self.canShoot = false
