@@ -1,20 +1,29 @@
 local menu = {} -- TODO ANIMATIONS and SHADERS
+local WhatGameText =
+		[[In GraviNULL2D, the player will be put in a Zero Gravity situation with no means to move around besides grappling onto numerious floating mines.
+		Apart from grappling, the player can also absorb a mine and launch a super-charged version of it towards his enemies.]]
 
-local ExampleText = [[Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur tristique, dolor at auctor tincidunt, purus urna imperdiet lectus, ac fringilla leo dolor sit amet erat.]]
+local ControlsText =
+		[[All you need to play this game is your mouse! Use the right mouse button to grapple and move, and use the left mouse button to absorb and shoot mines.
+		Pressing the middle mouse button will toggles the color of your charged mines: red deals massive damage and blue acts as a weak homing misile.]]
+
+local GamemodesText =
+		[[As of yet, the only game mode available is vanilla deathmatch. However, GraviNULL is a very unrestrictive game when it comes to gamemodes.
+		There is no limit to what we can add... Be it team deathmatches, capture the flag, races, puzzle games, co-op, or even... Super Smash ;)
+		Stay tuned!]]
+
 local Bugtext = [[Report it on our github webpage
-				http://github.com/lorem/ipsum/
+				http://github.com/bekey/gravinull2d/
 				
-				or email us at lorem@ipsum.com
+				or email us at bekey@blazkosi.com
 				
 				
-				Copyright (c) 2014 - Alpha 0.1.0]]
-local NewsText = [[ New game modes coming!
-				 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur tristique, dolor at auctor tincidunt, purus urna imperdiet lectus, ac fringilla leo dolor sit amet erat. Maecenas dolor erat, pharetra et ante ac, bibendum posuere lorem.
-				 Aliquam erat volutpat. Cras justo neque, tincidunt vitae dolor a, vestibulum ornare tellus. Quisque vel ante at lectus euismod fermentum non vitae quam. Cras ipsum tortor, vehicula eu laoreet vitae, vulputate in nisl. Duis ut sagittis nibh. ]]
-
+				Copyright (c) 2014 - Alpha 0.0.1]]
 function menu:enter() 
 	self.width, self.height = love.graphics.getWidth(), love.graphics.getHeight()
-	self.ratio =  self.height / 600
+	self.ratio = self.height / 600
+	self.font1 = self.height < 1024 and fonts["silkscreen16"] or fonts["silkscreen24"]
+	self.font2 = self.height < 1024 and fonts["silkscreen8"] or fonts["silkscreen16"]
 end
 
 function menu:draw()
@@ -44,13 +53,13 @@ function menu:draw()
 		end
 	end
 	
-	self:renderText("What is this game?", ExampleText, "left", 138)
-	self:renderText("The controls?", ExampleText, "left", 218)
-	self:renderText("What is this game?", ExampleText, "left", 338)
-	self:renderText("The controls?", ExampleText, "left", 418)
+	local WhatGameTitle =  self.height >= 600 and "What is this game?" or "Wat's dis game?"
+	local y = self.width / 800
+	self:renderText(WhatGameTitle, WhatGameText, "left", 5, y * 90)
+	self:renderText("The controls?", ControlsText, "left", 5, y * 190 + self.font2:getHeight())
+	self:renderText("Gamemodes?", GamemodesText, "left", 5, y * 320 + self.font2:getHeight())
 	
-	self:renderText("Things to come", NewsText..NewsText, "right", 138)
-	self:renderText("Found a bug?", Bugtext, "right", 525)
+	self:renderText("Found a bug?", Bugtext, "right", 0, y * 90)
 end
 
 function menu:renderImage(image, resize, horizontal, vertical, xOff, yOff)
@@ -106,17 +115,22 @@ function menu:renderQuad(image, quad, resize, horizontal, vertical, xOff, yOff)
 	love.graphics.drawq(image, quad, x, y, 0, scale)
 end
 
-function menu:renderText(Header, Text, Align, y) -- TODO: !!!
-	local x = 10
-	if Align == "right" then
-		x = love.graphics.getWidth()-images["mainmenu/wall_right"]:getWidth() + 65
+function menu:renderText(header, text, alignment, xOff, yOff, l)
+	local x = 0
+	header, text = header or "", text or ""
+	alignment = alignment or "left"
+	xOff, yOff = xOff or 0, yOff or 0
+	l = l or math.floor((self.height / 600) * 195)
+	if alignment == "right" then
+		x = self.width - l
 	end
-	love.graphics.setFont(fonts["silkscreen16"])
+	
+	love.graphics.setFont(self.font1)
 	love.graphics.setColor(153, 229, 80)
-	love.graphics.print(Header, x, y)
-	love.graphics.setFont(fonts["silkscreen8"])
+	love.graphics.print(header, x + xOff, yOff)
+	love.graphics.setFont(self.font2)
 	love.graphics.setColor(203, 219, 252)
-	love.graphics.printf(Text, x, y+16, 185)
+	love.graphics.printf(text, x + xOff, yOff + self.font2:getHeight() * 1.7, l)
 end
 
 return menu

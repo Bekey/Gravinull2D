@@ -31,7 +31,7 @@ function entities:LoadObjects()
 	layer:toCustomLayer() --TODO: Not break when love.load is called twice
 end
 
-function entities:LoadLevel() --TODO: Optimize using: http://love2d.org/forums/viewtopic.php?f=4&t=54654&p=131862#p132045
+function entities:LoadLevel() --TODO: Optimize using: http://love2d.org/forums/viewtopic.php?f=4&t=54654&p=131862#p132045 & http://www.love2d.org/wiki/TileMerging
 	local layer = map("Ground")
 	entities.objects.walls = {}
 	for x, y, tile in layer:iterate() do
