@@ -1,6 +1,7 @@
 local mine = Entities.Derive("base") or {}
 
 function mine:load()
+	self.velocity = { x = 0, y = 0}
 	self:loadBody()
 end
 
@@ -14,15 +15,15 @@ function mine:loadBody()
 	
 	self.Owner = nil
 	
-	self.body = love.physics.newBody(world, self.x, self.y, "dynamic")
-	local shape = love.physics.newCircleShape(self.radius)
-	self.fixture = love.physics.newFixture(self.body, shape)
-	self.fixture:setRestitution(0.2)
-	self.fixture:setUserData(self)
+	self.body = Collider:addCircle(self.x,self.y, self.radius)
+	--self.fixture:setRestitution(0.2)
+	self.body:setUserData(self)
 end
 
 function mine:update(dt)
-	self.x, self.y = self.body:getPosition()
+	local body  = self.body
+	body:move(self.velocity.x * dt, self.velocity.y * dt)
+	self.x, self.y = body:center()
 	
 	if self.Charge <= 0 then
 		self.Charge = 0
@@ -53,6 +54,7 @@ function mine:draw()
 	love.graphics.drawq(images["mines"],quad,self.x-self.radius,self.y-self.radius)
 	
 	if DEBUG then
+		self.body:draw('line', 8)
 		love.graphics.print(self.Charge,self.x+10,self.y)
 		love.graphics.circle("line", self.x, self.y, self.radius, 18)
 	end
@@ -60,8 +62,8 @@ end
 
 function mine:Die()
 	Entities.Spawn("FlashEffect", self.x-8, self.y-8)
-	self.fixture:setUserData(nil)
-	self.body:destroy()
+	--self.fixture:setUserData(nil)
+	--self.body:destroy()
 end
 
 function mine:getPosition()

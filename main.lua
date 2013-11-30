@@ -5,6 +5,7 @@ Camera = require("libs.hump.camera")
 Vector = require("libs.hump.vector")
 Timer = require("libs.hump.timer")
 Gamestate = require("libs.hump.gamestate")
+HC = require("libs.hardoncollider")
 require("libs.AnAL")
 
 --	App files
@@ -18,6 +19,7 @@ ATL.Loader.path = 'maps/'
 map = ATL.Loader.load("desert.tmx")
 love.graphics.setDefaultImageFilter( "nearest", "nearest" )
 love.physics.setMeter(map.tileWidth)
+Collider = HC(32, Collision.on_collide)
 world = love.physics.newWorld(0, 0, true)
 world:setCallbacks(Collision.beginContact, Collision.endContact, Collision.preSolve, Collision.postSolve)
 DEBUG = false

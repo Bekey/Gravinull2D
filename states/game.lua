@@ -16,6 +16,7 @@ end
 
 function game:update(dt)
 	world:update(dt)
+    Collider:update(dt)
 	Entities:update(dt)
 	Timer.update(dt)
 	cam:lookAt(math.floor(player:getX()),math.floor(player:getY()))
@@ -38,7 +39,7 @@ function game:keypressed(key, unicode)
 	map:callback("keypressed", key, unicode)
 	if key == 'f4' then
 		local x,y = cam:worldCoords(love.mouse.getPosition())
-		Entities.Spawn("amy", x, y)
+		Entities.Spawn("mine", x, y)
 	elseif key == 'f1' then
 		DEBUG = not DEBUG
 	end

@@ -1,5 +1,18 @@
 local collision = {}
 
+function collision.on_collide(dt, shape_a, shape_b)
+	local aUD, bUD = shape_a:getUserData(), shape_b:getUserData()
+    if aUD and bUD then
+    	if aUD == "wall" then
+			bUD.velocity.x = -bUD.velocity.x
+			bUD.velocity.y = -bUD.velocity.y
+    	elseif bUD == "wall" then
+			aUD.velocity.x = -aUD.velocity.x
+			aUD.velocity.y = -aUD.velocity.y
+        end
+	end
+end
+
 function collision.beginContact(a, b, coll)
 	local A, B = a:getUserData(), b:getUserData()
 	if A and B then -- Ugly array of if statements.

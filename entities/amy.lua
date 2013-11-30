@@ -1,9 +1,8 @@
 local Amy = Entities.Derive("base") or {}
 
 function Amy:load()
+	self.velocity = {x = 0, y = 0} 
 	self:loadBody()
-	self:loadArm()
-	self:loadJoint()
 	
 	if not self.teamColor then self.teamColor = math.random() end
 	self.armourPlating = self:colorPlate(self.teamColor, images["amy_plate"])
@@ -47,32 +46,16 @@ function Amy:loadBody()
 	self.w_body = 64
 	self.h_body = 25
 
-	self.body = love.physics.newBody(world, self.x,self.y, "dynamic")
-	self.shape = love.physics.newRectangleShape(self.w_body, self.h_body)
-	self.fixture = love.physics.newFixture(self.body, self.shape)
-	self.fixture:setUserData(self)
-	self.body:setFixedRotation(true)
-end
-
-function Amy:loadArm()
-	self.r_arm = 0
-	self.w_arm = 35
-	self.h_arm = 13
-
-	self.player_arm = {}
-	self.player_arm.body = love.physics.newBody(world, self.x+5,self.y+13, "dynamic")
-	self.player_arm.shape = love.physics.newRectangleShape(self.w_arm, self.h_arm)
-	self.player_arm.fixture = love.physics.newFixture(self.player_arm.body, self.player_arm.shape)
-end
-
-function Amy:loadJoint()
-	self.joint = love.physics.newRevoluteJoint(self.body, self.player_arm.body, self.x-12,self.y+5, false )
-	self.joint:enableLimit(true)
-	self.joint:setLimits(math.rad(-5), math.rad(180))
+	self.body = Collider:addRectangle(self.x,self.y, self.w_body,self.h_body)
+	--self.fixture:setUserData(self)
+	--self.body:setFixedRotation(true)
 end
 
 function Amy:update(dt)
-	self.x, self.y = self:getPosition()
+	local body  = self.body
+	body:move(self.velocity.x * dt, self.velocity.y * dt)
+	self.x, self.y = body:center()
+	
 	if self.Health <= 0 then
 	end
 end
@@ -81,41 +64,34 @@ function Amy:mousepressed(x, y, button)
 end
 
 function Amy:draw()
-	local body = self.fixture:getBody()
-	local x1, y1, x2, y2 = self.body:getWorldPoints(self.shape:getPoints())
-	self.r_body = body:getAngle()
-
-
-	local player_arm = self.player_arm.fixture:getBody()
-	local x, y = player_arm:getPosition( )
-	self.r_arm = player_arm:getAngle()
-
-	do
-		local quad = self:getBodyPart("amy/amy_joint")
-		love.graphics.drawq(images["amy/amy_joint"], quad, math.floor(x1), math.floor(y1), self.r_body,1,1,-18,-14,0,0)
+	self.body:draw('fill')
+	if self.isGrappling and self.Grappled then
+		local tx, ty = self.Grappled.x, self.Grappled.y
+		love.graphics.line(self.x+20, self.y+22, tx, ty)
 	end
-	do
-		local x1,y1, x2,y2 = self.player_arm.body:getWorldPoints(self.player_arm.shape:getPoints())
-		local quad = self:getBodyPart("amy/amy_arm")
-		love.graphics.drawq(images["amy/amy_arm"], quad, math.floor(x1), math.floor(y1), self.r_arm,1,1,0,0,0,0)
-	end
-	do
-		love.graphics.draw(self.armourPlating, math.floor(x1), math.floor(y1), self.r_body,1,1,0,0,0,0)
-	end
-	do
-		local quad = self:getBodyPart("amy/amy_gears")
-		love.graphics.drawq(images["amy/amy_gears"], quad, math.floor(x1), math.floor(y1), self.r_body,1,1,0,0,0,0)
-	end
-	if self.isGrappling and Grappled then
-		local tx, ty = Grappled.fixture:getBody():getPosition()
-		love.graphics.line(self:getX()+20, self:getY()+22, tx, ty)
-	end
-	
 	if DEBUG then
-		love.graphics.print(self.Health,self.x+35,self.y+10)
-		love.graphics.print(self.Score,self.x+35,self.y+25)
-		love.graphics.polygon("line", self.body:getWorldPoints(self.shape:getPoints()))
-		love.graphics.polygon("line", self.player_arm.body:getWorldPoints(self.player_arm.shape:getPoints()))
+		local mx, my = cam:mousepos()
+		local angle1 = math.atan2(my-self.y, mx-self.x)+math.rad(-4)
+		local angle2 = math.atan2(my-self.y, mx-self.x)+math.rad(4)
+		local ax, ay = 333*math.cos(angle1)+self.x, 333*math.sin(angle1)+self.y
+		local bx, by = 333*math.cos(angle2)+self.x, 333*math.sin(angle2)+self.y
+		
+		local tearDrop = Collider:addPolygon(	self.x, self.y,
+												ax, ay,
+												bx, by)
+		tearDrop:draw()
+		local x1,y1, x2,y2 = tearDrop:bbox()
+		love.graphics.rectangle('line', x1,y1, x2-x1,y2-y1)
+		for shape in pairs(Collider:shapesInRange(tearDrop:bbox())) do
+			if shape ~= tearDrop then
+				love.graphics.setColor(255,40,40)
+				love.graphics.setLineWidth(2)
+				shape:draw()
+				love.graphics.setLineWidth(1)
+				love.graphics.setColor(255,255,255)
+			end
+		end
+		Collider:remove(tearDrop)
 	end
 end
 
@@ -193,18 +169,15 @@ function Amy:colorPlate(T_Color, source)
 end
 
 function Amy:getPosition()
-	local x1, y1, x2, y2 = self.body:getWorldPoints(self.shape:getPoints())
-	return (x1+(x2-x1)/2), (y1+(y2-y1)/2)
+	return self.x, self.y
 end
 
 function Amy:getX()
-	local x1, y1, x2, y2 = self.body:getWorldPoints(self.shape:getPoints())
-	return (x1+(x2-x1)/2)
+	return self.x
 end
 
 function Amy:getY()
-	local x1, y1, x2, y2 = self.body:getWorldPoints(self.shape:getPoints())
-	return (y1+(y2-y1)/2)
+	return self.y
 end
 
 function Amy:getPlayer()

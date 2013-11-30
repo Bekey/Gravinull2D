@@ -2,11 +2,13 @@ local player = Entities.Derive("amy")
 local Raycast = require("entities.raycast")
 
 function player:update(dt)
-	self.x, self.y = self:getPosition()
+	local body  = self.body
+	body:move(self.velocity.x * dt, self.velocity.y * dt)
+	self.x, self.y = body:center()
 	
 	if self.isGrappling then
-		if Grappled then -- Is the player Grappled to an entity?
-			self:Grapple(Grappled)
+		if self.Grappled then -- Is the player Grappled to an entity?
+			self:Grapple(self.Grappled, dt)
 		end
 	elseif self.isHolding then -- Does it need anything here?
 	end
@@ -28,10 +30,10 @@ end
 function player:mousepressed(x, y, button)
 	-- GRAPPLING - - If the player is not holding and the right mouse is pressed: 
 	if not self.isHolding and not self.isGrappling and button == "r" then
-		local Grappling = Raycast:ShootRaycast(self.x+20, self.y+22, 1024)
+		local Grappling = Raycast:ShootRaycast(self.x, self.y, 1024)
 		if Grappling then
 			self.isGrappling = true
-			Grappled = Grappling
+			self.Grappled = Grappling
 		end
 	end
 	-- GRABBING - - If the player is not holding, can grab and left mouse is pressed:
@@ -45,33 +47,36 @@ function player:mousepressed(x, y, button)
 	end
 	-- SWITCHING - - If the player is holding and middle mouse is pressed
 	if self.isHolding and self.canChangeMode and button == "m" then
-		-- TODO: Add mode animation, timer, sound
-		if self.shootingMode == "RED" then
-			self.shootingMode = "BLUE"
-		else
-			self.shootingMode = "RED"
-		end
+		self:ChangeMode()
 	end
 end
 
 function player:mousereleased(x, y, button)
 	if button == "r" then
 		self.isGrappling = false
-		Grappled = nil
+		self.Grappled = nil
 	elseif button == "l" then
 		self.isGrabbing = false
 	end
 end
-
-function player:Grapple(Object)
-	local entity = Object.fixture:getUserData()
+function player:ChangeMode()
+-- TODO: Add mode animation, timer, sound
+	if self.shootingMode == "RED" then
+		self.shootingMode = "BLUE"
+	else
+		self.shootingMode = "RED"
+	end
+end
+function player:Grapple(Object, dt)
+	local entity = Object.body:getUserData()
 	if entity and entity.type == "mine" then
 		local delta = Vector(0,0)
 		
 		delta.x = entity.x - self.x
 		delta.y = entity.y - self.y
 		delta:normalized()
-		self.body:applyForce(delta.x*(1.2+delta:len()/2048), delta.y*(1.2+delta:len()/2048))
+		self.velocity.x = self.velocity.x + delta.x * dt
+		self.velocity.y = self.velocity.y + delta.y * dt
 	else
 		self.isGrappling = false
 	end
@@ -97,8 +102,10 @@ function player:Shoot(angle)
 	delta.x = ox - self.x
 	delta.y = oy - self.y
 	delta:normalized()
-	projectile.body:applyLinearImpulse(delta.x*2, delta.y*2)
-	self.body:applyLinearImpulse(-delta.x, -delta.y)
+	projectile.velocity.x = delta.x*2
+	projectile.velocity.y = delta.y*2
+	self.velocity.x = self.velocity.x + -delta.x
+	self.velocity.y = self.velocity.y + -delta.y
 	
 	self.isHolding = false
 	self.canShoot = false
@@ -117,14 +124,14 @@ function player:Shoot(angle)
 end
 
 function player:Grab(Object)
-	local entity = Object.fixture:getUserData()
+	local entity = Object.body:getUserData()
 	if entity and entity.type == "mine" then
 		self.shootingMode = "RED"
 		self.isGrappling = false
 		self.isHolding = true
 		self.canGrab = false
 		
-		Grappled = nil
+		self.Grappled = nil
 		
 		self.canShoot = false
 		Timer.add(0.75, function() self.canShoot = true end)
