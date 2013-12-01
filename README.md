@@ -56,3 +56,12 @@ Wooah! It's been months!? Well, to be fair I really did stop working on it for a
 - Worked out how to allow players to choose their own custom color! http://i.imgur.com/TyWXMOf.png
 - Pixel'd and added a game main menu: http://i.imgur.com/O3zGuMt.png
 - Fixed countless bugs, optimised 90% of the game, dropped some libraries and added new ones.
+
+###### 30/11/2013 - Day 90
+- Tested out HardonCollider, it offered some nifty tools for debugging and a VERY nifty raycast method: http://i.imgur.com/55NMwSd.gif
+- New Raycast method: Create cone shape, return a table of all shapes inside the bounding box of the cone shape, then test each shape if it's withing the cone shape.
+- Sadly HardonCollider on it's own does not offer enough features, returning back to Box2d.
+
+###### 01/12/2013 - Day 91
+- Finally I managed to write a clean and (hopefully) optimized raycast method. It works similar to the previous one used in HardonCollider. Check out the difference! 
+- I think this is it guys... Time to use LUBE

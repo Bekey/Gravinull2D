@@ -34,8 +34,10 @@ end
 function entities:LoadLevel() --TODO: Optimize using: http://love2d.org/forums/viewtopic.php?f=4&t=54654&p=131862#p132045 & http://www.love2d.org/wiki/TileMerging
 	local layer = map("Ground")
 	entities.objects.walls = {}
+	local walls = entities.objects.walls
 	for x, y, tile in layer:iterate() do
 		if tile.properties.obstacle then
+			local wall = walls[#walls+1]
 			local w, h, xOffset, yOffset
 			
 			w = tile.properties.width or map.tileWidth
@@ -46,8 +48,9 @@ function entities:LoadLevel() --TODO: Optimize using: http://love2d.org/forums/v
 			local body = love.physics.newBody(world, x*map.tileWidth+xOffset+w/2, y*map.tileHeight+yOffset+h/2)
 			local shape = love.physics.newRectangleShape(w, h)
 			
-			entities.objects.walls.fixture = love.physics.newFixture(body, shape)
-			entities.objects.walls.fixture:setMask(16)
+			wall = love.physics.newFixture(body, shape)
+			wall:setMask(16)
+			wall:setUserData("wall")
 		end
 	end
 end

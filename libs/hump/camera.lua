@@ -29,6 +29,8 @@ local cos, sin = math.cos, math.sin
 
 local camera = {}
 camera.__index = camera
+
+-- This Variable is added by Bekey for the GraviNULL2D game !!
 camera._bounds = nil
 
 local function new(x,y, zoom, rot)
@@ -123,14 +125,17 @@ function camera:mousepos()
 	return self:worldCoords(love.mouse.getPosition())
 end
 
+-- This function is added by Bekey for the GraviNULL2D game !!
 function camera:getBounds()
 	return unpack(self._bounds)
 end
 
+-- This function is added by Bekey for the GraviNULL2D game !!
 function camera:setBounds(x1, y1, x2, y2)
 	self._bounds = { x1 = x1, y1 = y1, x2 = x2, y2 = y2 }
 end
 
+-- This function is added by Bekey for the GraviNULL2D game !!
 function camera.clamp(x, min, max)
 	if x < min then
 		return min
