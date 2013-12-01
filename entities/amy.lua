@@ -147,7 +147,7 @@ function Amy:getViewCone(x, y, distance, spread)
 end
 
 function Amy:update(dt)
-	self.x, self.y = self:getPosition()
+	self.x, self.y = self.body:getPosition()
 	
 	if self.isGrappling then
 		if self.Grappled then -- Is the player self.Grappled to an entity?
@@ -162,12 +162,11 @@ end
 
 
 function Amy:Grapple(Object)
-	local entity = Object.fixture:getUserData()
-	if entity and entity.type == "mine" then
+	if Object and Object.type == "mine" then
 		local delta = Vector(0,0)
 		
-		delta.x = entity.x - self.x
-		delta.y = entity.y - self.y
+		delta.x = Object.x - self.x
+		delta.y = Object.y - self.y
 		delta:normalized()
 		self.body:applyForce(delta.x*(1.2+delta:len()/2048), delta.y*(1.2+delta:len()/2048))
 	else
@@ -177,31 +176,27 @@ end
 
 function Amy:Shoot(angle) 
 	local delta = Vector(0, 0)
-	local ox, oy = 50*math.cos(angle)+self.x, 50*math.sin(angle)+self.y
-	local projectile = Entities.Spawn("mine", ox, oy)
+	local ox, oy = 50*math.cos(angle)+self.x, 50*math.sin(angle)+self.y--TODO: Improve
+	local charge = self.shootingMode == "RED" and 60 or 20
+	local projectile = Entities.Spawn("mine", ox, oy, self.shootingMode, charge, self)
 	projectile.isGrabbed = false
 	projectile.isGrabbable = false
 	projectile.isGrappleAble = true
-	projectile.Mode = self.shootingMode
-	projectile.Owner = self
 	
 	if projectile.Mode == "RED" then
-		projectile.Charge = 60
 		Timer.add(3, function() projectile.Charge = projectile.Charge - 1 end)
-	else
-		projectile.Charge = 20
 	end
 	
 	delta.x = ox - self.x
 	delta.y = oy - self.y
 	delta:normalized()
+	
 	projectile.body:applyLinearImpulse(delta.x*2, delta.y*2)
 	self.body:applyLinearImpulse(-delta.x, -delta.y)
 	
 	self.isHolding = false
 	self.canShoot = false
 	self.canGrab = false
-	
 	
 	Timer.add(1, function() self.canGrab = true end)
 	Timer.add(0.3, function() projectile.isGrabbable = true end)
@@ -210,13 +205,11 @@ function Amy:Shoot(angle)
 		Timer.add(10, function() projectile.Mode, projectile.Charge = "NEUTRAL", 0 end)
 		Timer.add(5, function() self.canChangeMode = true end)
 	end
-	
 	return projectile
 end
 
 function Amy:Grab(Object)
-	local entity = Object.fixture:getUserData()
-	if entity and entity.type == "mine" then
+	if Object and Object.type == "mine" then
 		self.shootingMode = "RED"
 		self.isGrappling = false
 		self.isHolding = true
@@ -226,7 +219,7 @@ function Amy:Grab(Object)
 		
 		self.canShoot = false
 		Timer.add(0.75, function() self.canShoot = true end)
-		return Entities.Destroy(entity.id)
+		return Entities.Destroy(Object.id)
 	end
 end
 
@@ -261,8 +254,8 @@ function Amy:draw()
 		love.graphics.drawq(images["amy/amy_gears"], quad, math.floor(x1), math.floor(y1), self.r_body,1,1,0,0,0,0)
 	end
 	if self.isGrappling and self.Grappled then
-		local tx, ty = self.Grappled.fixture:getBody():getPosition()
-		love.graphics.line(self:getX()+20, self:getY()+22, tx, ty)
+		local tx, ty = self.Grappled.x, self.Grappled.y
+		love.graphics.line(self:getX()+20, self:getY()+12, tx, ty)
 	end
 	
 	if DEBUG then
@@ -347,21 +340,6 @@ function Amy:colorPlate(T_Color, source)
 	
 	source:mapPixel(hueShift)
 	return love.graphics.newImage(source)
-end
-
-function Amy:getPosition()
-	local x1, y1, x2, y2 = self.body:getWorldPoints(self.shape:getPoints())
-	return (x1+(x2-x1)/2), (y1+(y2-y1)/2)
-end
-
-function Amy:getX()
-	local x1, y1, x2, y2 = self.body:getWorldPoints(self.shape:getPoints())
-	return (x1+(x2-x1)/2)
-end
-
-function Amy:getY()
-	local x1, y1, x2, y2 = self.body:getWorldPoints(self.shape:getPoints())
-	return (y1+(y2-y1)/2)
 end
 
 function Amy:getPlayer()

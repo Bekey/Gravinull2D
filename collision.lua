@@ -2,26 +2,24 @@ local collision = {}
 
 function collision.beginContact(a, b, coll)
 	local A, B = a:getUserData(), b:getUserData()
-	if A and B then -- Ugly array of if statements.
+	if A and B and A ~= "wall" then -- Ugly array of if statements.
 		--	AMY - MINE
 		--======================================================================
-		if ((A.type == "mine" and A.Mode ~= "NEUTRAL") and (B.type == "amy" or B.type == "player")) or 
-		((A.type == "amy" or A.type == "player") and (B.type == "mine" and B.Mode ~= "NEUTRAL")) then
-		--======================================================================		
-			local dx, dy = coll:getNormal()	
-			local x1, y1 = coll:getPositions( )
-			A.body:applyLinearImpulse(-dx * 1.5, -dy * 1.5, x1, y1)
-			B.body:applyLinearImpulse( dx * 1.5,  dy * 1.5, x1, y1)
-			if  (A.type == "mine") then
-				if B.Hurt then B:Hurt(A) end
-			elseif (B.type == "mine") then
-				if A.Hurt then A:Hurt(B) end
-			end
+		if A.Mode ~= "NEUTRAL" and A.type == "mine" 	and (B.type == "amy" or B.type == "player") then 
+			collision.AmyMine(B, A, coll)
+		elseif B.Mode ~= "NEUTRAL" and B.type == "mine" and (A.type == "amy" or A.type == "player") then
+			collision.AmyMine(A, B, coll)
 		end
-		
 		--
-		
     end
+end
+
+function collision.AmyMine(amy, mine, coll)	
+	local dx, dy = coll:getNormal()	
+	local x1, y1 = coll:getPositions( )
+	amy.body:applyLinearImpulse(-dx * 1.5, -dy * 1.5, x1, y1)
+	mine.body:applyLinearImpulse( dx * 1.5,  dy * 1.5, x1, y1)
+	amy:Hurt(mine)
 end
 
 function collision.endContact(a, b, coll)

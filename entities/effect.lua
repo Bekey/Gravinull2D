@@ -20,8 +20,4 @@ function effect:Die()
 	self.x, self.y, self.anim = nil, nil, nil
 end
 
-function effect:getPosition()
-	return self.x, self.y
-end
-
 return effect;

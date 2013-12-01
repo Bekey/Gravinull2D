@@ -1,4 +1,4 @@
-local menu = {} -- TODO ANIMATIONS and SHADERS
+local menu = {} -- TODO ANIMATIONS and SHADERS and cleanup dont forget clean up
 local WhatGameText =
 		[[In GraviNULL2D, the player will be put in a Zero Gravity situation with no means to move around besides grappling onto numerious floating mines.
 		Apart from grappling, the player can also absorb a mine and launch a super-charged version of it towards his enemies.]]

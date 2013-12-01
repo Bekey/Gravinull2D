@@ -9,10 +9,10 @@ local id = 0
 
 
 function entities:loadAll()
-	register["player"] = love.filesystem.load( entities.path .. "player.lua" )
-	register["amy"] = love.filesystem.load( entities.path .. "amy.lua" )
-	register["mine"] = love.filesystem.load( entities.path .. "mine.lua" )
-	register["FlashEffect"] = love.filesystem.load( entities.path .. "effects/flash.lua" )
+	register["player"] = 		love.filesystem.load( entities.path .. "player.lua" )
+	register["amy"] = 			love.filesystem.load( entities.path .. "amy.lua" )
+	register["mine"] = 			love.filesystem.load( entities.path .. "mine.lua" )
+	register["FlashEffect"] = 	love.filesystem.load( entities.path .. "effects/flash.lua" )
 
 	self:LoadObjects()
 	self:LoadLevel()
@@ -33,33 +33,36 @@ end
 
 function entities:LoadLevel() --TODO: Optimize using: http://love2d.org/forums/viewtopic.php?f=4&t=54654&p=131862#p132045 & http://www.love2d.org/wiki/TileMerging
 	local layer = map("Ground")
-	entities.objects.walls = {}
-	local walls = entities.objects.walls
+	self.objects.walls = {}
 	for x, y, tile in layer:iterate() do
 		if tile.properties.obstacle then
-			local wall = walls[#walls+1]
-			local w, h, xOffset, yOffset
-			
-			w = tile.properties.width or map.tileWidth
-			h = tile.properties.height or map.tileHeight
-			xOffset = tile.properties.xOffset or 0
-			yOffset = tile.properties.yOffset or 0
-			
-			local body = love.physics.newBody(world, x*map.tileWidth+xOffset+w/2, y*map.tileHeight+yOffset+h/2)
-			local shape = love.physics.newRectangleShape(w, h)
-			
-			wall = love.physics.newFixture(body, shape)
-			wall:setMask(16)
-			wall:setUserData("wall")
+			self:makeObstacle(x, y, tile)
 		end
 	end
+end
+
+function entities:makeObstacle(x, y, tile)
+	local wall = self.objects.walls[#self.objects.walls+1]
+	local w, h, xOffset, yOffset
+	
+	w = tile.properties.width or map.tileWidth
+	h = tile.properties.height or map.tileHeight
+	xOffset = tile.properties.xOffset or 0
+	yOffset = tile.properties.yOffset or 0
+	
+	local body = love.physics.newBody(world, x*map.tileWidth+xOffset+w/2, y*map.tileHeight+yOffset+h/2)
+	local shape = love.physics.newRectangleShape(w, h)
+	
+	wall = love.physics.newFixture(body, shape)
+	wall:setMask(16)
+	wall:setUserData("wall")
 end
 
 function entities.Derive(name)
 	return love.filesystem.load( entities.path .. name .. ".lua" )()
 end
 
-function entities.Spawn(name, x, y)
+function entities.Spawn(name, x, y, ...)
 	if register[name] then
 		id = id + 1
 		
@@ -67,7 +70,7 @@ function entities.Spawn(name, x, y)
 		entity.id = id
 		entity.type = name
 		entity:setPos(x, y) --TODO: Validate if it exists, or move into :load()
-		entity:load()
+		entity:load(...)
 		entities.objects[id] = entity
 		
 		return entities.objects[id]

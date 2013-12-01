@@ -1,18 +1,17 @@
 local mine = Entities.Derive("base") or {}
 
-function mine:load()
+function mine:load(mode, charge, owner, target)	
+	self.Mode = mode or "NEUTRAL"
+	self.Charge = charge or 0
+	self.Owner = owner or nil
+	self.Target = target or nil
+	
 	self:loadBody()
 end
-
 
 function mine:loadBody()
 	self.radius = 8
 	self.angle = 0
-	
-	self.Mode = "NEUTRAL"
-	self.Charge = 0
-	
-	self.Owner = nil
 	
 	self.body = love.physics.newBody(world, self.x, self.y, "dynamic")
 	local shape = love.physics.newCircleShape(self.radius)
@@ -26,6 +25,7 @@ function mine:update(dt)
 	
 	if self.Charge <= 0 then
 		self.Charge = 0
+		self.Owner = nil
 		self.Mode = "NEUTRAL"
 	end
 	
@@ -62,10 +62,6 @@ function mine:Die()
 	Entities.Spawn("FlashEffect", self.x-8, self.y-8)
 	self.fixture:setUserData(nil)
 	self.body:destroy()
-end
-
-function mine:getPosition()
-	return self.x, self.y
 end
 
 return mine;

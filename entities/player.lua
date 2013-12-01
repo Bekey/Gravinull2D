@@ -2,7 +2,7 @@ local player = Entities.Derive("amy")
 local Raycast = require("entities.raycast")
 
 function player:update(dt)
-	self.x, self.y = self:getPosition()
+	self.x, self.y = self.body:getPosition()
 	
 	if self.isGrappling then
 		if self.Grappled then -- Is the player self.Grappled to an entity?

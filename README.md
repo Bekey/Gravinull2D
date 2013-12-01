@@ -63,5 +63,5 @@ Wooah! It's been months!? Well, to be fair I really did stop working on it for a
 - Sadly HardonCollider on it's own does not offer enough features, returning back to Box2d.
 
 ###### 01/12/2013 - Day 91
-- Finally I managed to write a clean and (hopefully) optimized raycast method. It works similar to the previous one used in HardonCollider. Check out the difference! 
+- Finally I managed to write a clean and (hopefully) optimized raycast method. It works similar to the previous one used in HardonCollider. (*"rewrite entities/raycast.lua (96%)"*)
 - I think this is it guys... Time to use LUBE
