@@ -33,6 +33,9 @@ function game:draw()
 	Entities:draw()
 
 	cam:detach()
+	love.graphics.setFont(fonts["silkscreen32"])
+	love.graphics.print(string.format("FPS: %s, DT: %s",  love.timer.getFPS( ), love.timer.getDelta()), 10, 10)
+	love.graphics.setFont(fonts["silkscreen8"])
 end
 
 function game:keypressed(key, unicode)

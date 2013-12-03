@@ -65,3 +65,6 @@ Wooah! It's been months!? Well, to be fair I really did stop working on it for a
 ###### 01/12/2013 - Day 91
 - Finally I managed to write a clean and (hopefully) optimized raycast method. It works similar to the previous one used in HardonCollider. (*"rewrite entities/raycast.lua (96%)"*)
 - I think this is it guys... Time to use LUBE
+
+###### 02/12/2013 - Day 91
+- Implemented LUBE for the netcode and gvx's Ser library for serialization. Some basic stuff, but it's going along nicely despite the few hickups I had at the start.

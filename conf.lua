@@ -4,7 +4,7 @@ local Dimensions = {
 	{1280, 800},-- 16:10
 	{1280, 1024} -- 5:4
 }
-local Dimension = Dimensions[2]
+local Dimension = Dimensions[1]
 function love.conf(t)
     t.modules.joystick = false   -- Enable the joystick module (boolean)
     t.modules.audio = false      -- Enable the audio module (boolean)

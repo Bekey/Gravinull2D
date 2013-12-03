@@ -29,7 +29,6 @@ end
 function menu:draw()
 	love.graphics.setColor(255, 255, 255)
 	
-	
 	self:renderImage(images["mainmenu/background"], "resize-y", "center")
 	
 	self:renderImage(images["mainmenu/eye_big"], 0, "center", "top", 0, 208)

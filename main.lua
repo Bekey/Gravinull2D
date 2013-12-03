@@ -1,15 +1,19 @@
 --	Libraries - libraries.txt for more info
 --=============================================--
 ATL 	= 	require("libs.AdvTiledLoader")
+class 	= 	require("libs.hump.class")
 Camera 	= 	require("libs.hump.camera")
 Vector 	= 	require("libs.hump.vector")
 Timer 	= 	require("libs.hump.timer")
 State 	= 	require("libs.hump.gamestate")
+Serialize= 	require("libs.ser")
 			require("libs.AnAL")
-
+			require("libs.LUBE")
+ 
 --	App files
 --=============================================--
 Entities = 	require("entities")
+Client	 = 	require("client")
 local Collision = require("collision")
 
 --	Temporary globals
@@ -28,7 +32,6 @@ fonts = {}
 --=============================================--
 local menu = require("states.mainmenu")
 local game = require("states.game")
-
 
 -- love.load()
 --=============================================--
@@ -62,7 +65,15 @@ end
 -- Gamestate switch handling
 --=============================================--
 function menu:mousepressed(x, y, button)
+    	local a, b = Client:connect("192.168.1.64", 18112)
+    	Client:send("Hi")
     if y >= 360 and y<= 360+30 then --TODO: Proper GUI stuff
-        State.switch(game)
+        if a and not b then
+        	State.switch(game)
+    	end
     end
+end
+
+function menu:update(dt)
+	Client:update(dt)
 end
