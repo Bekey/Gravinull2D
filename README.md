@@ -66,5 +66,12 @@ Wooah! It's been months!? Well, to be fair I really did stop working on it for a
 - Finally I managed to write a clean and (hopefully) optimized raycast method. It works similar to the previous one used in HardonCollider. (*"rewrite entities/raycast.lua (96%)"*)
 - I think this is it guys... Time to use LUBE
 
-###### 02/12/2013 - Day 91
+###### 02/12/2013 - Day 92
+- **What's been done so far:** http://i.minus.com/ibbVyAqQFfatSv.gif
 - Implemented LUBE for the netcode and gvx's Ser library for serialization. Some basic stuff, but it's going along nicely despite the few hickups I had at the start.
+- Server code is at https://github.com/Bekey/GraviNULL2D-Server
+
+###### 04/12/2013 - Day 93
+- Still doing net-code. What a challenge.
+- Levels are now loaded from the server. Also supports multiple players.
+- It took really really long to have a lag-free setup. There's a lot of stuff missing, but at least it's lag free: http://i.imgur.com/rfcKLLI.gif

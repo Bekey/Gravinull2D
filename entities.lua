@@ -3,9 +3,9 @@
 local entities = {}
 entities.objects = {}
 entities.path = "entities/"
+entities.id = 0
 
 local register = {}
-local id = 0
 
 
 function entities:loadAll()
@@ -14,7 +14,7 @@ function entities:loadAll()
 	register["mine"] = 			love.filesystem.load( entities.path .. "mine.lua" )
 	register["FlashEffect"] = 	love.filesystem.load( entities.path .. "effects/flash.lua" )
 
-	self:LoadObjects()
+	--self:LoadObjects()
 	self:LoadLevel()
 end
 
@@ -62,30 +62,27 @@ function entities.Derive(name)
 	return love.filesystem.load( entities.path .. name .. ".lua" )()
 end
 
-function entities.Spawn(name, x, y, ...)
-	if register[name] then
-		id = id + 1
-		
-		local entity = register[name]()
-		entity.id = id
-		entity.type = name
-		entity:setPos(x, y) --TODO: Validate if it exists, or move into :load()
-		entity:load(...)
-		entities.objects[id] = entity
-		
-		return entities.objects[id]
-	else
-		love.errhand("Entity " .. name .. " does not exist!")
-		return false;
-	end
+function entities.Spawn(id, name, x, y, ...)
+	local id = id or entities.id + 1
+	local entity = register[name]()
+	
+	entity.id = id
+	entity.type = name
+	entity:setPos(x, y) --TODO: Validate if it exists, or move into :load()
+	entity:load(...)
+	entities.objects[id] = entity
+	
+	if entity.type == "player" then player = entities.objects[id] end
+	entities.id = id
+	return entities.objects[id]
 end
 
 function entities.Destroy(id)
 	if entities.objects[id] then
 		if entities.objects[id].Die then
-			entities.objects[id]:Die()
+			--entities.objects[id]:Die()
 		end
-		entities.objects[id] = nil
+		--entities.objects[id] = nil
 	end
 end
 

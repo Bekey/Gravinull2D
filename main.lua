@@ -66,7 +66,6 @@ end
 --=============================================--
 function menu:mousepressed(x, y, button)
     	local a, b = Client:connect("192.168.1.64", 18112)
-    	Client:send("Hi")
     if y >= 360 and y<= 360+30 then --TODO: Proper GUI stuff
         if a and not b then
         	State.switch(game)

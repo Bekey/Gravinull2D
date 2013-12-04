@@ -24,6 +24,7 @@ function player:update(dt)
 		elseif self.canShoot then
 			local x, y = cam:mousepos()
 			local angle = math.atan2(y-self.y, x-self.x)
+			Client:send(string.format("return \"SHOOTING\", %d, %d", angle, self.id))
 			self:Shoot(angle)
 		end
 	end
@@ -38,6 +39,8 @@ function player:mousepressed(x, y, button)
 			if Grappling then
 				self.isGrappling = true
 				self.Grappled = Grappling
+				local data = {["GRAPPLE"] = {self.id, self.Grappled.id}}
+				Client:send(Serialize(data))
 			end
 		end
 	end
@@ -65,6 +68,8 @@ function player:mousereleased(x, y, button)
 	if button == "r" then
 		self.isGrappling = false
 		self.Grappled = nil
+		local data = {["UNGRAPPLE"] = {self.id}}
+		Client:send(Serialize(data))
 	elseif button == "l" then
 		self.isGrabbing = false
 	end

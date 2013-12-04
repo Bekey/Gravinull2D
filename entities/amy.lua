@@ -2,8 +2,6 @@ local Amy = Entities.Derive("base") or {}
 
 function Amy:load()
 	self:loadBody()
-	self:loadArm()
-	self:loadJoint()
 	
 	if not self.teamColor then self.teamColor = math.random() end
 	self.armourPlating = self:colorPlate(self.teamColor, images["amy_plate"])
@@ -37,21 +35,6 @@ function Amy:loadBody()
 	self.fixture = love.physics.newFixture(self.body, self.shape)
 	self.fixture:setUserData(self)
 	self.body:setFixedRotation(true)
-end
-function Amy:loadArm()
-	self.r_arm = 0
-	self.w_arm = 35
-	self.h_arm = 13
-
-	self.player_arm = {}
-	self.player_arm.body = love.physics.newBody(world, self.x+5,self.y+13, "dynamic")
-	self.player_arm.shape = love.physics.newRectangleShape(self.w_arm, self.h_arm)
-	self.player_arm.fixture = love.physics.newFixture(self.player_arm.body, self.player_arm.shape)
-end
-function Amy:loadJoint()
-	self.joint = love.physics.newRevoluteJoint(self.body, self.player_arm.body, self.x-12,self.y+5, false )
-	self.joint:enableLimit(true)
-	self.joint:setLimits(math.rad(-5), math.rad(180))
 end
 
 function Amy:Hurt(Object)
@@ -164,7 +147,7 @@ end
 function Amy:Grapple(Object)
 	if Object and Object.type == "mine" then
 		local delta = Vector(0,0)
-		
+		self.isGrappling = true
 		delta.x = Object.x - self.x
 		delta.y = Object.y - self.y
 		delta:normalized()
@@ -178,7 +161,7 @@ function Amy:Shoot(angle)
 	local delta = Vector(0, 0)
 	local ox, oy = 50*math.cos(angle)+self.x, 50*math.sin(angle)+self.y--TODO: Improve
 	local charge = self.shootingMode == "RED" and 60 or 20
-	local projectile = Entities.Spawn("mine", ox, oy, self.shootingMode, charge, self)
+	local projectile = Entities.Spawn(1, "mine", ox, oy, self.shootingMode, charge, self)
 	projectile.isGrabbed = false
 	projectile.isGrabbable = false
 	projectile.isGrappleAble = true
@@ -217,9 +200,11 @@ function Amy:Grab(Object)
 		
 		self.Grappled = nil
 		
+		local data = {["GRAB"] = {self.id, Object.id}}
+		Client:send(Serialize(data))
+		
 		self.canShoot = false
 		Timer.add(0.75, function() self.canShoot = true end)
-		return Entities.Destroy(Object.id)
 	end
 end
 
@@ -232,20 +217,6 @@ function Amy:draw()
 	local x1, y1, x2, y2 = self.body:getWorldPoints(self.shape:getPoints())
 	self.r_body = body:getAngle()
 
-
-	local player_arm = self.player_arm.fixture:getBody()
-	local x, y = player_arm:getPosition( )
-	self.r_arm = player_arm:getAngle()
-
-	do
-		local quad = self:getBodyPart("amy/amy_joint")
-		love.graphics.drawq(images["amy/amy_joint"], quad, math.floor(x1), math.floor(y1), self.r_body,1,1,-18,-14,0,0)
-	end
-	do
-		local x1,y1, x2,y2 = self.player_arm.body:getWorldPoints(self.player_arm.shape:getPoints())
-		local quad = self:getBodyPart("amy/amy_arm")
-		love.graphics.drawq(images["amy/amy_arm"], quad, math.floor(x1), math.floor(y1), self.r_arm,1,1,0,0,0,0)
-	end
 	do
 		love.graphics.draw(self.armourPlating, math.floor(x1), math.floor(y1), self.r_body,1,1,0,0,0,0)
 	end

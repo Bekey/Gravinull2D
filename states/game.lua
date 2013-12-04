@@ -15,11 +15,14 @@ function game:init()
 end
 
 function game:update(dt)
+	Client:update(dt)
 	world:update(dt)
 	Entities:update(dt)
 	Timer.update(dt)
-	cam:lookAt(	math.floor(player:getX()),
-				math.floor(player:getY()))
+	if player then
+		cam:lookAt(	math.floor(player:getX()),
+					math.floor(player:getY()))
+	end
 end
 
 function game:draw()
@@ -42,7 +45,7 @@ function game:keypressed(key, unicode)
 	map:callback("keypressed", key, unicode)
 	if key == 'f4' then
 		local x,y = cam:mousepos()
-		Entities.Spawn("player", x, y)
+		Entities.Spawn(nil, "player", x, y)
 	elseif key == 'f1' then
 		DEBUG = not DEBUG
 	end
