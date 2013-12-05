@@ -23,9 +23,9 @@ function entities:LoadObjects()
 	for i = 1, #layer.objects do
 	local obj = layer.objects[i]
 		if obj.name == "player" then
-			player = self.Spawn(obj.name, obj.x, obj.y) --TODO: Better way to make the player global?
+			player = self.Spawn(nil, obj.name, obj.x, obj.y) --TODO: Better way to make the player global?
 		else
-			self.Spawn(obj.name, obj.x, obj.y)
+			self.Spawn(nil, obj.name, obj.x, obj.y)
 		end
 	end
 	layer:toCustomLayer() --TODO: Not break when love.load is called twice
@@ -63,6 +63,7 @@ function entities.Derive(name)
 end
 
 function entities.Spawn(id, name, x, y, ...)
+	assert(register[name], string.format("Entity %s doesn't exist", name))
 	local id = id or entities.id + 1
 	local entity = register[name]()
 	
