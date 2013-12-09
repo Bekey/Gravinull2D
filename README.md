@@ -75,3 +75,11 @@ Wooah! It's been months!? Well, to be fair I really did stop working on it for a
 - Still doing net-code. What a challenge.
 - Levels are now loaded from the server. Also supports multiple players.
 - It took really really long to have a lag-free setup. There's a lot of stuff missing, but at least it's lag free: http://i.imgur.com/rfcKLLI.gif
+
+###### 09/12/2013 - Day 8675
+- Uh, feels like it was just yesterday.
+- Fiddled around with the netcode, in the end I just rewrote the entire entity system to fit the syncing server-client better.
+- Also mostly fixed the rubberbanding by syncing x,y, velocity-x and velocity-y individually as opposed to together when both x and y are out of sync.
+- Some issues about phantom mines, probably related to client side predictions. Phantom mines cause a lot of trouble when interacted, so we need to make sure they're never to be found.
+- Amy apparently learned how to use transmogrify, it's what amy does: http://i.imgur.com/Ata8Z2L.gif (if you watched buffy, it'll make sense)
+- And another cute bug: http://i.imgur.com/kWQhoTO.gif

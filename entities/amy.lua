@@ -3,7 +3,7 @@ local Amy = Entities.Derive("base") or {}
 function Amy:load()
 	self:loadBody()
 	
-	if not self.teamColor then self.teamColor = math.random() end
+	if not self.teamColor then self.teamColor = love.math.random() end
 	self.armourPlating = self:colorPlate(self.teamColor, images["amy_plate"])
 	
 	self.Health = self.Health or 100
@@ -12,17 +12,12 @@ function Amy:load()
 
 	self.Grappled = false
 	self.Grabbed = false
-
-	self.isGrappling = false
 	self.isGrabbing = false
-	self.isHolding = false
-
+	
 	self.canGrapple = true
 	self.canShoot = true
-	
 	self.canGrab = true
 	self.canChangeMode = true
-	self.shootingMode = "RED"
 end
 
 function Amy:loadBody()
@@ -39,13 +34,13 @@ end
 
 function Amy:Hurt(Object)
 	local score = 0
-	if Object.Charge > self.Health then
+	if Object.CHARGE > self.Health then
 		score = math.abs(math.floor(self.Health/10)) + 3
 	else
-		score = math.abs(math.floor(Object.Charge/10))
+		score = math.abs(math.floor(Object.CHARGE/10))
 	end
-	self.Health = self.Health - Object.Charge
-	Object.Owner.Score = Object.Owner.Score + score
+	self.Health = self.Health - Object.CHARGE
+	Object.OWNER.Score = Object.OWNER.Score + score
 	
 	if self.Health <= 0 then
 		
@@ -76,7 +71,7 @@ function Amy:InsideCone(x1, y1, x2, y2, x3, y3, type)
 	end
 	
 	for _, entity in pairs(Entities.objects) do
-		if entity.type == ENTITY_TYPE then
+		if entity.type == "mine" or entity.type == "bluemine" or entity.type == "redmine" then
 		if entity.y and entity.x then
 			if ((entity.y > uy and entity.y < ly) or (entity.y < uy and entity.y > ly)) then
 			if (entity.x > ux and entity.x < lx) or (entity.x > lx and entity.x < ux) then
@@ -131,12 +126,9 @@ end
 
 function Amy:update(dt)
 	self.x, self.y = self.body:getPosition()
-	
-	if self.isGrappling then
-		if self.Grappled then -- Is the player self.Grappled to an entity?
-			self:Grapple(self.Grappled)
-		end
-	elseif self.isHolding then -- Does it need anything here? TODO: YES! aniamtion and shit
+	if not self.Grabbed and self.Grappled then -- Is the player self.Grappled to an entity?
+		self:Grapple(self.Grappled)
+	elseif self.Grabbed then -- Does it need anything here? TODO: YES! aniamtion and shit
 	end
 	
 	if self.Health <= 0 then
@@ -145,66 +137,58 @@ end
 
 
 function Amy:Grapple(Object)
-	if Object and Object.type == "mine" then
+	if Object and (Object.type == "mine" or Object.type == "bluemine" or Object.type == "redmine") then
 		local delta = Vector(0,0)
-		self.isGrappling = true
 		delta.x = Object.x - self.x
 		delta.y = Object.y - self.y
 		delta:normalized()
 		self.body:applyForce(delta.x*(1.2+delta:len()/2048), delta.y*(1.2+delta:len()/2048))
-	else
-		self.isGrappling = false
 	end
 end
 
-function Amy:Shoot(angle) 
+function Amy:Shoot(angle) 	
+	local data = {["SHOOT"] = {self.id, angle}}
+	Client:send(Serialize(data))
+	
 	local delta = Vector(0, 0)
 	local ox, oy = 50*math.cos(angle)+self.x, 50*math.sin(angle)+self.y--TODO: Improve
-	local charge = self.shootingMode == "RED" and 60 or 20
-	local projectile = Entities.Spawn(1, "mine", ox, oy, self.shootingMode, charge, self)
-	projectile.isGrabbed = false
-	projectile.isGrabbable = false
-	projectile.isGrappleAble = true
+	local projectile
 	
-	if projectile.Mode == "RED" then
-		Timer.add(3, function() projectile.Charge = projectile.Charge - 1 end)
-	end
+	if self.Grabbed == "RED" then
+		projectile = Entities.Spawn("redmine", ox, oy, self)
+	elseif self.Grabbed == "BLUE" then
+		projectile = Entities.Spawn("bluemine", ox, oy, self)
+		self.canChangeMode = false
+		Timer.add(5, function() self.canChangeMode = true end)
+	end 
 	
 	delta.x = ox - self.x
 	delta.y = oy - self.y
 	delta:normalized()
-	
+
 	projectile.body:applyLinearImpulse(delta.x*2, delta.y*2)
 	self.body:applyLinearImpulse(-delta.x, -delta.y)
 	
-	self.isHolding = false
+	self.Grabbed = nil
 	self.canShoot = false
 	self.canGrab = false
 	
 	Timer.add(1, function() self.canGrab = true end)
-	Timer.add(0.3, function() projectile.isGrabbable = true end)
-	if self.shootingMode == "BLUE" then
-		self.canChangeMode = false
-		Timer.add(10, function() projectile.Mode, projectile.Charge = "NEUTRAL", 0 end)
-		Timer.add(5, function() self.canChangeMode = true end)
-	end
-	return projectile
+	--return projectile
 end
 
 function Amy:Grab(Object)
-	if Object and Object.type == "mine" then
-		self.shootingMode = "RED"
-		self.isGrappling = false
-		self.isHolding = true
-		self.canGrab = false
-		
-		self.Grappled = nil
-		
+	if Object and (Object.type == "mine" or Object.type == "bluemine" or Object.type == "redmine") then
 		local data = {["GRAB"] = {self.id, Object.id}}
-		Client:send(Serialize(data))
-		
+		Client:send(Serialize(data))		
+
+		self.Grabbed = "RED"
+		self.Grappled = nil
+
+		self.canGrab = false		
 		self.canShoot = false
 		Timer.add(0.75, function() self.canShoot = true end)
+		return Entities.Destroy(Object.id)		
 	end
 end
 
@@ -213,6 +197,15 @@ function Amy:mousepressed(x, y, button)
 end
 
 function Amy:draw()
+	self:drawAmy()
+	if DEBUG then
+		love.graphics.print(self.Health,self.x+35,self.y+10)
+		love.graphics.print(self.Score,self.x+35,self.y+25)
+		love.graphics.polygon("line", self.body:getWorldPoints(self.shape:getPoints()))
+	end
+end
+
+function Amy:drawAmy()
 	local body = self.fixture:getBody()
 	local x1, y1, x2, y2 = self.body:getWorldPoints(self.shape:getPoints())
 	self.r_body = body:getAngle()
@@ -222,21 +215,11 @@ function Amy:draw()
 	end
 	do
 		local quad = self:getBodyPart("amy/amy_gears")
-		love.graphics.drawq(images["amy/amy_gears"], quad, math.floor(x1), math.floor(y1), self.r_body,1,1,0,0,0,0)
+		love.graphics.draw(images["amy/amy_gears"], quad, math.floor(x1), math.floor(y1), self.r_body,1,1,0,0,0,0)
 	end
-	if self.isGrappling and self.Grappled then
+	if self.Grappled then
 		local tx, ty = self.Grappled.x, self.Grappled.y
 		love.graphics.line(self:getX()+20, self:getY()+12, tx, ty)
-	end
-	
-	if DEBUG then
-		love.graphics.print(self.Health,self.x+35,self.y+10)
-		love.graphics.print(self.Score,self.x+35,self.y+25)
-		love.graphics.polygon("line", self.body:getWorldPoints(self.shape:getPoints()))
-		love.graphics.polygon("line", self.player_arm.body:getWorldPoints(self.player_arm.shape:getPoints()))
-		local x, y = cam:mousepos()
-		local x1, y1, x2, y2, x3, y3 = self:getViewCone(x, y, 1024, 5)
-		love.graphics.polygon("line", x1, y1, x2, y2, x3, y3 )
 	end
 end
 

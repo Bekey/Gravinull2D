@@ -45,7 +45,7 @@ function game:keypressed(key, unicode)
 	map:callback("keypressed", key, unicode)
 	if key == 'f4' then
 		local x,y = cam:mousepos()
-		Entities.Spawn(nil, "player", x, y)
+		Entities.Spawn("player", x, y)
 	elseif key == 'f1' then
 		DEBUG = not DEBUG
 	end

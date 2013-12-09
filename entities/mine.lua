@@ -1,20 +1,22 @@
 local mine = Entities.Derive("base") or {}
+mine.RADIUS = 8
+mine.TIMER = 0
 
-function mine:load(mode, charge, owner, target)	
-	self.Mode = mode or "NEUTRAL"
-	self.Charge = charge or 0
-	self.Owner = owner or nil
-	self.Target = target or nil
+function mine:load()	
+	self.MODE = "NEUTRAL"
+	self.CHARGE = 0
+	self.OWNER = nil
+	self.TARGET = nil
+	self.GRABBABLE = true
+	
 	
 	self:loadBody()
 end
 
 function mine:loadBody()
-	self.radius = 8
-	self.angle = 0
-	
 	self.body = love.physics.newBody(world, self.x, self.y, "dynamic")
-	local shape = love.physics.newCircleShape(self.radius)
+	local shape = love.physics.newCircleShape(self.RADIUS)
+	
 	self.fixture = love.physics.newFixture(self.body, shape)
 	self.fixture:setRestitution(0.2)
 	self.fixture:setUserData(self)
@@ -22,44 +24,24 @@ end
 
 function mine:update(dt)
 	self.x, self.y = self.body:getPosition()
-	
-	if self.Charge <= 0 then
-		self.Charge = 0
-		self.Owner = nil
-		self.Mode = "NEUTRAL"
-	end
-	
-	if self.Mode == "BLUE" then
-		--GET NEAREST PLAYER..
-	elseif self.Mode == "RED" and self.Charge < 60 then
-		self.Charge = self.Charge - dt * 10
-	end
 end
 
 function mine:draw()
-	local i, j = 0,0
-	
-	if 		self.Mode == "NEUTRAL" 	then
-	i, j = 0,0
-	elseif 	self.Mode == "RED" 		then
-	i = 1
-	elseif 	self.Mode == "BLUE" 	then
-	j = 1
-	elseif 	self.Mode == "GREEN" 	then
-	i,j = 1,1
-	end
-	
-	local quad = love.graphics.newQuad(i*16, j*16, 16, 16, images["mines"]:getWidth(), images["mines"]:getHeight())
-	love.graphics.drawq(images["mines"],quad,self.x-self.radius,self.y-self.radius)
+	self:drawMine(0,0)
+end
+
+function mine:drawMine(x,y)
+	local quad = love.graphics.newQuad(x*16, y*16, 16, 16, images["mines"]:getWidth(), images["mines"]:getHeight())
+	love.graphics.draw(images["mines"],quad,self.x-self.RADIUS,self.y-self.RADIUS)
 	
 	if DEBUG then
-		love.graphics.print(self.Charge,self.x+10,self.y)
-		love.graphics.circle("line", self.x, self.y, self.radius, 18)
+		love.graphics.print(self.CHARGE,self.x+10,self.y)
+		love.graphics.circle("line", self.x, self.y, self.RADIUS, 18)
 	end
 end
 
 function mine:Die()
-	Entities.Spawn("FlashEffect", self.x-8, self.y-8)
+	Entities.newEffect("FlashEffect", self.x-8, self.y-8)
 	self.fixture:setUserData(nil)
 	self.body:destroy()
 end

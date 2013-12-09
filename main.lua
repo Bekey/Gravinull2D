@@ -20,7 +20,7 @@ local Collision = require("collision")
 --=============================================--
 ATL.Loader.path = 'maps/'
 map = ATL.Loader.load("desert.tmx")
-love.graphics.setDefaultImageFilter( "nearest", "nearest" )
+love.graphics.setDefaultFilter( "nearest", "nearest" )
 love.physics.setMeter(32)
 world = love.physics.newWorld(0, 0, true)
 world:setCallbacks(Collision.beginContact, Collision.endContact, Collision.preSolve, Collision.postSolve)
@@ -65,8 +65,8 @@ end
 -- Gamestate switch handling
 --=============================================--
 function menu:mousepressed(x, y, button)
-    	local a, b = Client:connect("92.37.108.102", 18112)
     if y >= 360 and y<= 360+30 then --TODO: Proper GUI stuff
+    	local a, b = Client:connect("192.168.1.64", 18112)
         if a and not b then
         	State.switch(game)
     	end

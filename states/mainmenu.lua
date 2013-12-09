@@ -111,7 +111,7 @@ function menu:renderQuad(image, quad, resize, horizontal, vertical, xOff, yOff)
 		x = 0
 	end
 	
-	love.graphics.drawq(image, quad, x, y, 0, scale)
+	love.graphics.draw(image, quad, x, y, 0, scale)
 end
 
 function menu:renderText(header, text, alignment, xOff, yOff, l)

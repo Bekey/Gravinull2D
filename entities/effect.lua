@@ -7,7 +7,7 @@ function effect:update(dt)
 	self.anim:update(dt)
 	if self.anim:getMode() == "once" then
 		if self.anim:getCurrentFrame() == self.anim:getSize() then
-			Entities.Destroy(self.id)
+			Entities.DestroyEffect(self.id)
 		end
 	end
 end
